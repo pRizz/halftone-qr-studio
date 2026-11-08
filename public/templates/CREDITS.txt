@@ -4,16 +4,8 @@ These image assets have their own public-domain/CC0 status, separate from
 the application code's MIT license. Source pages were checked 2026-11-08.
 Full images are served locally as 2048 x 2048 WebP files (quality 90), with
 160 x 160 WebP thumbnails (quality 80). Metadata was removed. Photographs
-were center-cropped to a square. The complete tree silhouette was rendered
-on a white square. The application can further crop, recolor, dither, and
-overlay QR marks according to the user's chosen settings.
-
-TREE - tree.webp / tree-thumb.webp
-Title: Silhouette of a Tree.svg
-Creator: Amada44
-Status: Released into the public domain by the author, worldwide.
-Source: https://commons.wikimedia.org/wiki/File:Silhouette_of_a_Tree.svg
-Original: https://upload.wikimedia.org/wikipedia/commons/8/8a/Silhouette_of_a_Tree.svg
+were center-cropped to a square. The application can further crop, recolor,
+dither, and overlay QR marks according to the user's chosen settings.
 
 DAISY - daisy.webp / daisy-thumb.webp
 Title: 20131022Bellis perennis.jpg
@@ -37,10 +29,5 @@ Creator: NASA / Apollo 17
 Status: Public domain in the United States as a NASA-created work.
 Source: https://commons.wikimedia.org/wiki/File:The_Earth_seen_from_Apollo_17.jpg
 Original: https://upload.wikimedia.org/wikipedia/commons/9/97/The_Earth_seen_from_Apollo_17.jpg
-
-LANDSCAPE - existing sample.svg
-Creator: Halftone QR Studio
-License: MIT; see the repository LICENSE file.
-Source: https://github.com/pRizz/halftone-qr-studio/blob/main/src/sample.svg
 
 Sources identify the images and their creators; no endorsement is implied.

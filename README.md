@@ -21,7 +21,7 @@ Put a picture into a QR code. The generator runs locally in your browser and exp
 
 The [live website](https://prizz.github.io/halftone-qr-studio/) with the Cat template in smooth color mode. Cat photo by [Pavel Kovalev](https://commons.wikimedia.org/wiki/File:Portrait_of_a_cat1.jpg), [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
 
-This is an **independent implementation** inspired by [Jorge C. Lucero's Halftone QR](https://lucerojc.github.io/halftone-qr/). Its source code and sample image were not copied. The technique is also discussed in [Erik and Martin Demaine's QR prints](https://erikdemaine.org/prints/QR/) and Chu, Chang, Lee, and Mitra, *Halftone QR Codes* (ACM Transactions on Graphics, 2013).
+This is an **independent implementation** inspired by [Jorge C. Lucero's Halftone QR](https://lucerojc.github.io/halftone-qr/). Its source code was not copied. The technique is also discussed in [Erik and Martin Demaine's QR prints](https://erikdemaine.org/prints/QR/) and Chu, Chang, Lee, and Mitra, *Halftone QR Codes* (ACM Transactions on Graphics, 2013).
 
 ## Run locally
 
@@ -37,6 +37,7 @@ Run `npm test` for core checks and `npm run build` for a production build. The b
 ## Current features
 
 - Text or URL input, local image upload, drag and drop, and paste
+- Daisy, Cat, and Earth image templates, with a random starting image on each visit
 - Contrast, brightness, zoom, inversion, and four dithering modes
 - Four module layouts, four error correction levels, minimum version, reference mark protection, and picture aware QR mask selection
 - Automatic larger code for photos, color selection, browser scan feedback, and PNG/SVG export
@@ -49,4 +50,4 @@ The scan check is a useful signal, not a guarantee. Check the final download wit
 
 ## Credits and licenses
 
-The application code and sample landscape are MIT licensed under [LICENSE](LICENSE). The QR encoder at `src/vendor/qrcodegen.ts` is Project Nayuki's [QR Code generator](https://github.com/nayuki/QR-Code-generator) at commit `bcfe1b018cec5f1f91b5705eca5bb4cdd34e9f8d`, licensed under MIT; its full notice is preserved in that file. QR reading uses [jsQR](https://github.com/cozmo/jsQR), licensed under Apache 2.0 and installed from npm. Neither Jorge C. Lucero nor Project Nayuki is affiliated with this project.
+The application code is MIT licensed under [LICENSE](LICENSE). Template images are public domain or CC0; their sources, creators, and modifications are listed in [image credits](public/templates/CREDITS.txt). The QR encoder at `src/vendor/qrcodegen.ts` is Project Nayuki's [QR Code generator](https://github.com/nayuki/QR-Code-generator) at commit `bcfe1b018cec5f1f91b5705eca5bb4cdd34e9f8d`, licensed under MIT; its full notice is preserved in that file. QR reading uses [jsQR](https://github.com/cozmo/jsQR), licensed under Apache 2.0 and installed from npm. Neither Jorge C. Lucero nor Project Nayuki is affiliated with this project.

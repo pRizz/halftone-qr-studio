@@ -228,5 +228,6 @@ for (const id of ['text', 'contrast', 'brightness', 'zoom', 'invert', 'pictureMo
 el<HTMLButtonElement>('downloadSvg').addEventListener('click', () => { if (result) download(`halftone-qr-v${result.version}.svg`, new Blob([toSvg(result)], { type: 'image/svg+xml' })); });
 el<HTMLButtonElement>('downloadPng').addEventListener('click', () => { if (!result) return; const canvas = document.createElement('canvas'); paint(canvas, result, Number(el<HTMLSelectElement>('exportSize').value)); canvas.toBlob(blob => { if (blob) download(`halftone-qr-v${result!.version}.png`, blob); }, 'image/png'); });
 el<HTMLButtonElement>('copySvg').addEventListener('click', async () => { if (!result) return; const button = el<HTMLButtonElement>('copySvg'); try { await navigator.clipboard.writeText(toSvg(result)); button.textContent = 'Copied!'; } catch { button.textContent = 'Copy failed'; } window.setTimeout(() => button.textContent = 'Copy SVG', 1600); });
-loadPicture(templates[0].url, 'Sample landscape · replace it', templates[0]);
+const startingTemplate = templates[Math.floor(Math.random() * templates.length)];
+loadPicture(startingTemplate.url, `${startingTemplate.name} template`, startingTemplate);
 render();
