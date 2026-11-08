@@ -1,5 +1,20 @@
 # Halftone QR Studio
 
+<!-- bright-builds-rules-readme-badges:begin -->
+
+<!-- Managed upstream by bright-builds-rules. If this badge block needs a fix, open an upstream PR or issue instead of editing the downstream managed block. Keep repo-local README content outside this managed badge block. -->
+
+[![GitHub Stars](https://img.shields.io/github/stars/pRizz/halftone-qr-studio)](https://github.com/pRizz/halftone-qr-studio)
+[![CI](https://img.shields.io/github/actions/workflow/status/pRizz/halftone-qr-studio/ci.yml?style=flat-square&logo=github&label=CI)](https://github.com/pRizz/halftone-qr-studio/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/pRizz/halftone-qr-studio?style=flat-square)](./LICENSE)
+[![Node.js >=22.12.0](https://img.shields.io/badge/Node.js-%3E%3D22.12.0-339933?logo=node.js&logoColor=white)](./package.json)
+[![TypeScript 5.9.3](https://img.shields.io/badge/TypeScript-5.9.3-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite 8.3.6](https://img.shields.io/badge/Vite-8.3.6-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
+[![Bright Builds: Rules](https://raw.githubusercontent.com/bright-builds-llc/bright-builds-rules/main/public/badges/bright-builds-rules-flat.svg)](https://github.com/bright-builds-llc/bright-builds-rules)
+[![OpenLinks profile](https://img.shields.io/badge/OpenLinks-profile-0F172A)](https://openlinks.us/)
+
+<!-- bright-builds-rules-readme-badges:end -->
+
 Put a black-and-white picture into a QR code. The generator runs locally in your browser and exports PNG and SVG.
 
 This is an **independent implementation** inspired by [Jorge C. Lucero's Halftone QR](https://lucerojc.github.io/halftone-qr/). Its source code and sample image were not copied. The technique is also discussed in [Erik and Martin Demaine's QR prints](https://erikdemaine.org/prints/QR/) and Chu, Chang, Lee, and Mitra, *Halftone QR Codes* (ACM Transactions on Graphics, 2013).
