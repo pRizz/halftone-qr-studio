@@ -4,7 +4,7 @@ import { compose, pictureFraction } from './halftone';
 import { sampleImage, samplePicture } from './image';
 import { makeQr } from './qr';
 import type { DitherMode, ErrorLevel, MarkProtection, PictureMode, Result, Settings } from './types';
-import sampleUrl from './sample.svg?url';
+import { templates, type TemplateImage } from './templates';
 import './style.css';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -16,6 +16,9 @@ app.innerHTML = `
       <label for="text">Text or link</label><textarea id="text" rows="3" spellcheck="false">https://github.com/pRizz/halftone-qr-studio</textarea><div class="small right" id="count"></div>
       <div class="section-title spaced"><span>02</span><div><h2>Picture</h2><p>Choose an image to weave into the modules.</p></div></div>
       <label class="drop" id="drop" for="file" tabindex="0"><img id="thumb" alt="Selected picture preview"/><span><strong id="drop-title">Choose or drop a picture</strong><small>Paste an image anywhere on the page, too</small></span></label><input id="file" type="file" accept="image/*" hidden/>
+      <p class="template-label" id="template-label">Or try a template</p>
+      <div class="templates" id="templates" role="group" aria-labelledby="template-label"></div>
+      <p class="small template-credit" id="template-credit" aria-live="polite"></p>
       <div class="sliders"><label for="contrast">Contrast <output id="contrast-out"></output></label><input id="contrast" type="range" min="0.4" max="3" step="0.05" value="1.3"/>
       <label for="brightness">Brightness <output id="brightness-out"></output></label><input id="brightness" type="range" min="-0.5" max="0.5" step="0.01" value="0"/>
       <label for="zoom">Zoom <output id="zoom-out"></output></label><input id="zoom" type="range" min="1" max="3" step="0.05" value="1"/></div>
@@ -44,10 +47,10 @@ app.innerHTML = `
 
 function el<T extends HTMLElement>(id: string): T { return document.getElementById(id) as T; }
 const preview = el<HTMLCanvasElement>('preview');
-const image = new Image();
 let currentImage: HTMLImageElement | null = null;
 let result: Result | null = null;
-let imageUrl: string | null = null;
+let maybeImageUrl: string | null = null;
+let imageGeneration = 0;
 let timer: number | undefined;
 let scanGeneration = 0;
 let versionTouched = false;
@@ -136,16 +139,41 @@ function render(): void {
 
 function queueRender(): void { clearTimeout(timer); timer = window.setTimeout(render, 100); }
 
-function loadFile(file?: File): void {
-  if (!file) return;
-  if (!file.type.startsWith('image/')) { el<HTMLElement>('error').textContent = 'Choose an image file.'; el<HTMLElement>('error').hidden = false; return; }
-  const url = URL.createObjectURL(file);
+function showTemplateCredit(maybeTemplate?: TemplateImage): void {
+  const credit = el<HTMLElement>('template-credit');
+  credit.replaceChildren();
+  if (maybeTemplate) {
+    const source = document.createElement('a');
+    source.href = maybeTemplate.source;
+    source.textContent = maybeTemplate.author;
+    const license = document.createElement('a');
+    license.href = maybeTemplate.licenseUrl;
+    license.textContent = maybeTemplate.license;
+    for (const link of [source, license]) { link.target = '_blank'; link.rel = 'noopener noreferrer'; }
+    credit.append('Image: ', source, ' · ', license, ' · ');
+  }
+  const all = document.createElement('a');
+  all.href = `${import.meta.env.BASE_URL}templates/CREDITS.txt`;
+  all.textContent = 'All image credits';
+  all.target = '_blank'; all.rel = 'noopener noreferrer';
+  credit.append(all);
+}
+
+function loadPicture(url: string, label: string, maybeTemplate?: TemplateImage): void {
+  const generation = ++imageGeneration;
+  const release = () => { if (url.startsWith('blob:')) URL.revokeObjectURL(url); };
   const next = new Image();
   next.onload = () => {
-    if (imageUrl) URL.revokeObjectURL(imageUrl);
-    imageUrl = url; currentImage = next;
+    if (generation !== imageGeneration) { release(); return; }
+    if (maybeImageUrl) URL.revokeObjectURL(maybeImageUrl);
+    maybeImageUrl = url.startsWith('blob:') ? url : null;
+    currentImage = next;
     el<HTMLImageElement>('thumb').src = url;
-    el<HTMLElement>('drop-title').textContent = file.name;
+    el<HTMLElement>('drop-title').textContent = label;
+    for (const button of Array.from(el<HTMLElement>('templates').querySelectorAll('button'))) {
+      button.setAttribute('aria-pressed', String(button.dataset.template === maybeTemplate?.id));
+    }
+    showTemplateCredit(maybeTemplate);
     if (!versionTouched) {
       const small = sampleImage(next, 64, { ...settings(), contrast: 1, brightness: 0 });
       const midtones = small.filter(value => value > 0.2 && value < 0.8).length / small.length;
@@ -157,8 +185,33 @@ function loadFile(file?: File): void {
     }
     render();
   };
-  next.onerror = () => { URL.revokeObjectURL(url); el<HTMLElement>('error').textContent = 'Could not read that picture.'; el<HTMLElement>('error').hidden = false; };
+  next.onerror = () => {
+    release();
+    if (generation !== imageGeneration) return;
+    el<HTMLElement>('error').textContent = 'Could not read that picture. Please try again.';
+    el<HTMLElement>('error').hidden = false;
+  };
   next.src = url;
+}
+
+function loadFile(maybeFile?: File): void {
+  if (!maybeFile) return;
+  if (!maybeFile.type.startsWith('image/')) { el<HTMLElement>('error').textContent = 'Choose an image file.'; el<HTMLElement>('error').hidden = false; return; }
+  loadPicture(URL.createObjectURL(maybeFile), maybeFile.name);
+  el<HTMLInputElement>('file').value = '';
+}
+
+for (const template of templates) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.dataset.template = template.id;
+  button.setAttribute('aria-pressed', 'false');
+  const thumbnail = document.createElement('img');
+  thumbnail.src = template.thumbnail; thumbnail.alt = ''; thumbnail.width = thumbnail.height = 160;
+  const label = document.createElement('span'); label.textContent = template.name;
+  button.append(thumbnail, label);
+  button.addEventListener('click', () => loadPicture(template.url, `${template.name} template`, template));
+  el<HTMLElement>('templates').append(button);
 }
 
 el<HTMLInputElement>('file').addEventListener('change', event => loadFile((event.target as HTMLInputElement).files?.[0]));
@@ -172,6 +225,5 @@ for (const id of ['text', 'contrast', 'brightness', 'zoom', 'invert', 'pictureMo
 el<HTMLButtonElement>('downloadSvg').addEventListener('click', () => { if (result) download(`halftone-qr-v${result.version}.svg`, new Blob([toSvg(result)], { type: 'image/svg+xml' })); });
 el<HTMLButtonElement>('downloadPng').addEventListener('click', () => { if (!result) return; const canvas = document.createElement('canvas'); paint(canvas, result, Number(el<HTMLSelectElement>('exportSize').value)); canvas.toBlob(blob => { if (blob) download(`halftone-qr-v${result!.version}.png`, blob); }, 'image/png'); });
 el<HTMLButtonElement>('copySvg').addEventListener('click', async () => { if (!result) return; const button = el<HTMLButtonElement>('copySvg'); try { await navigator.clipboard.writeText(toSvg(result)); button.textContent = 'Copied!'; } catch { button.textContent = 'Copy failed'; } window.setTimeout(() => button.textContent = 'Copy SVG', 1600); });
-image.onload = () => { currentImage = image; el<HTMLImageElement>('thumb').src = sampleUrl; el<HTMLElement>('drop-title').textContent = 'Sample landscape · replace it'; render(); };
-image.src = sampleUrl;
+loadPicture(templates[0].url, 'Sample landscape · replace it', templates[0]);
 render();
