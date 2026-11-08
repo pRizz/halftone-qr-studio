@@ -30,4 +30,27 @@ Status: Public domain in the United States as a NASA-created work.
 Source: https://commons.wikimedia.org/wiki/File:The_Earth_seen_from_Apollo_17.jpg
 Original: https://upload.wikimedia.org/wikipedia/commons/9/97/The_Earth_seen_from_Apollo_17.jpg
 
+RED PANDA - red-panda.webp / red-panda-thumb.webp
+Title: Red Panda - 53008873649.jpg
+Creator: Mathias Appel
+License: CC0 1.0 Universal Public Domain Dedication
+License URL: https://creativecommons.org/publicdomain/zero/1.0/
+Source: https://commons.wikimedia.org/wiki/File:Red_Panda_-_53008873649.jpg
+Original: https://upload.wikimedia.org/wikipedia/commons/5/58/Red_Panda_-_53008873649.jpg
+
+MOON - moon.webp / moon-thumb.webp
+Title: Full moon.png
+Creator: NASA / JPL / Galileo
+Status: Public domain in the United States as a NASA-created work.
+Source: https://commons.wikimedia.org/wiki/File:Full_moon.png
+Original: https://upload.wikimedia.org/wikipedia/commons/e/e2/Full_moon.png
+
+SUNFLOWER - sunflower.webp / sunflower-thumb.webp
+Title: Sunflower zoomed in (IMG 4860).jpg
+Creator: Tokeamour
+License: CC0 1.0 Universal Public Domain Dedication
+License URL: https://creativecommons.org/publicdomain/zero/1.0/
+Source: https://commons.wikimedia.org/wiki/File:Sunflower_zoomed_in_(IMG_4860).jpg
+Original: https://upload.wikimedia.org/wikipedia/commons/6/6a/Sunflower_zoomed_in_%28IMG_4860%29.jpg
+
 Sources identify the images and their creators; no endorsement is implied.

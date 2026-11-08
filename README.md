@@ -37,7 +37,7 @@ Run `npm test` for core checks and `npm run build` for a production build. The b
 ## Current features
 
 - Text or URL input, local image upload, drag and drop, and paste
-- Daisy, Cat, and Earth image templates, with a random starting image on each visit
+- Daisy, Cat, Earth, Red Panda, Moon, and Sunflower templates, with a random starting image on each visit
 - Contrast, brightness, zoom, inversion, and four dithering modes
 - Four module layouts, four error correction levels, minimum version, reference mark protection, and picture aware QR mask selection
 - Automatic larger code for photos, color selection, browser scan feedback, and PNG/SVG export
