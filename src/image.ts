@@ -1,19 +1,31 @@
-import type { DitherMode, Settings } from './types';
+import type { DitherMode, Picture, PictureMode, Settings } from './types';
+import { adjustPicture } from './picture';
 
-export function sampleImage(image: HTMLImageElement | null, size: number, settings: Settings): Float32Array {
+function samplePixels(maybeImage: HTMLImageElement | null, size: number, settings: Settings): Uint8ClampedArray {
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = size;
   const context = canvas.getContext('2d', { willReadFrequently: true });
   if (!context) throw new Error('Canvas is unavailable');
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
   context.fillStyle = '#fff';
   context.fillRect(0, 0, size, size);
-  if (image) {
-    const width = image.naturalWidth;
-    const height = image.naturalHeight;
+  if (maybeImage) {
+    const width = maybeImage.naturalWidth;
+    const height = maybeImage.naturalHeight;
     const scale = Math.max(size / width, size / height) * settings.zoom;
-    context.drawImage(image, (size - width * scale) / 2, (size - height * scale) / 2, width * scale, height * scale);
+    context.drawImage(maybeImage, (size - width * scale) / 2, (size - height * scale) / 2, width * scale, height * scale);
   }
-  const rgba = context.getImageData(0, 0, size, size).data;
+  return context.getImageData(0, 0, size, size).data;
+}
+
+export function samplePicture(maybeImage: HTMLImageElement | null, size: number, settings: Settings, mode: PictureMode): Picture {
+  if (mode === 'halftone') return { mode };
+  return { mode, size, pixels: adjustPicture(samplePixels(maybeImage, size, settings), settings, mode) };
+}
+
+export function sampleImage(maybeImage: HTMLImageElement | null, size: number, settings: Settings): Float32Array {
+  const rgba = samplePixels(maybeImage, size, settings);
   const values = new Float32Array(size * size);
   for (let i = 0; i < values.length; i++) {
     const j = i * 4;

@@ -1,8 +1,8 @@
 import { ditherImage } from './image';
 import { isFinderRegion, isFunctionModule, makeQr } from './qr';
-import type { Result, Settings } from './types';
+import type { Picture, Result, Settings } from './types';
 
-export function compose(settings: Settings, grays: Float32Array): Result {
+export function compose(settings: Settings, grays: Float32Array, pictureLayer: Picture = { mode: 'halftone' }): Result {
   if (!settings.text) throw new Error('Enter text or a link to encode.');
   const qrSize = makeQr(settings.text, settings.errorLevel, settings.minVersion).size;
   const grid = settings.grid;
@@ -27,6 +27,7 @@ export function compose(settings: Settings, grays: Float32Array): Result {
   const picture = ditherImage(grays, qrSize * grid, settings.dither);
   const size = (qrSize + 8) * grid;
   const bits = new Uint8Array(size * size);
+  const protectedCells = new Uint8Array(size * size);
   const inset = (grid - settings.center) / 2;
   for (let y = 0; y < qrSize; y++) for (let x = 0; x < qrSize; x++) {
     const qrBit = qr.getModule(x, y) ? 1 : 0;
@@ -34,11 +35,13 @@ export function compose(settings: Settings, grays: Float32Array): Result {
       || settings.protect === 'finders' && isFinderRegion(x, y, qrSize);
     for (let dy = 0; dy < grid; dy++) for (let dx = 0; dx < grid; dx++) {
       const center = dx >= inset && dx < inset + settings.center && dy >= inset && dy < inset + settings.center;
-      bits[((y + 4) * grid + dy) * size + (x + 4) * grid + dx] = solid || center
+      const index = ((y + 4) * grid + dy) * size + (x + 4) * grid + dx;
+      protectedCells[index] = Number(solid || center);
+      bits[index] = solid || center
         ? qrBit : picture[(y * grid + dy) * qrSize * grid + x * grid + dx];
     }
   }
-  return { bits, size, grid, center: settings.center, modules: qrSize,
+  return { bits, protected: protectedCells, picture: pictureLayer, size, grid, center: settings.center, modules: qrSize,
     version: qr.version, mask: qr.mask, dark: settings.dark, light: settings.light };
 }
 

@@ -1,6 +1,12 @@
 export type ErrorLevel = 'L' | 'M' | 'Q' | 'H';
 export type DitherMode = 'floyd' | 'atkinson' | 'bayer' | 'threshold';
 export type MarkProtection = 'all' | 'finders' | 'none';
+export type PictureMode = 'halftone' | 'grayscale' | 'color';
+export type Picture = { mode: 'halftone' } | {
+  mode: 'grayscale' | 'color';
+  pixels: Uint8ClampedArray;
+  size: number;
+};
 
 export interface Settings {
   text: string;
@@ -21,6 +27,8 @@ export interface Settings {
 
 export interface Result {
   bits: Uint8Array;
+  protected: Uint8Array;
+  picture: Picture;
   size: number;
   grid: number;
   center: number;

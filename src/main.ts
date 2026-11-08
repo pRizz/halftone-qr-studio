@@ -1,9 +1,9 @@
 import jsQR from 'jsqr';
 import { paint, toSvg, download } from './export';
 import { compose, pictureFraction } from './halftone';
-import { sampleImage } from './image';
+import { sampleImage, samplePicture } from './image';
 import { makeQr } from './qr';
-import type { DitherMode, ErrorLevel, MarkProtection, Result, Settings } from './types';
+import type { DitherMode, ErrorLevel, MarkProtection, PictureMode, Result, Settings } from './types';
 import sampleUrl from './sample.svg?url';
 import './style.css';
 
@@ -19,6 +19,8 @@ app.innerHTML = `
       <div class="sliders"><label for="contrast">Contrast <output id="contrast-out"></output></label><input id="contrast" type="range" min="0.4" max="3" step="0.05" value="1.3"/>
       <label for="brightness">Brightness <output id="brightness-out"></output></label><input id="brightness" type="range" min="-0.5" max="0.5" step="0.01" value="0"/>
       <label for="zoom">Zoom <output id="zoom-out"></output></label><input id="zoom" type="range" min="1" max="3" step="0.05" value="1"/></div>
+      <label for="pictureMode">Picture mode</label><select id="pictureMode" aria-describedby="picture-mode-hint"><option value="halftone">Halftone · black and white</option><option value="grayscale">Smooth grayscale</option><option value="color">Smooth color</option></select>
+      <p class="small" id="picture-mode-hint">Dithered cells surround each protected QR center.</p>
       <div class="two-col"><div><label for="dither">Dithering</label><select id="dither"><option value="floyd">Floyd–Steinberg</option><option value="atkinson">Atkinson</option><option value="bayer">Ordered Bayer</option><option value="threshold">Threshold</option></select></div><div><label for="grid">Module grid</label><select id="grid"><option value="6,2">6 × 6 · center 2 × 2</option><option value="3,1">3 × 3 · center 1 × 1</option><option value="5,1">5 × 5 · center 1 × 1</option><option value="5,3">5 × 5 · center 3 × 3</option></select></div></div>
       <label class="check"><input id="invert" type="checkbox"/> Invert picture tones</label>
       <div class="section-title spaced"><span>03</span><div><h2>QR code</h2><p>Balance the picture with scan reliability.</p></div></div>
@@ -33,8 +35,9 @@ app.innerHTML = `
       <div class="canvas-wrap"><canvas id="preview" aria-label="Generated QR code preview"></canvas></div>
       <p id="error" class="error" role="alert" hidden></p><p id="scan" class="scan" role="status">Generating code…</p>
       <div class="stats"><div><b id="version-stat">–</b><span>Version</span></div><div><b id="module-stat">–</b><span>Modules</span></div><div><b id="picture-stat">–</b><span>Picture area</span></div><div><b id="mask-stat">–</b><span>Mask</span></div></div>
-      <div class="export"><label for="exportSize">PNG size</label><select id="exportSize"><option value="1024">1024 px</option><option value="2048" selected>2048 px</option><option value="4096">4096 px</option></select><button id="downloadPng" class="primary">Download PNG</button><button id="downloadSvg">Download SVG</button><button id="copySvg">Copy SVG</button></div>
-      <details><summary>How does it work?</summary><p>Each QR module is subdivided. Its center keeps the QR bit; the surrounding cells carry a dithered picture. The corner patterns and quiet border help scanners locate the code. Scan the exported file with a phone before printing.</p></details>
+      <div class="export"><label for="exportSize">Image resolution</label><select id="exportSize" aria-describedby="resolution-hint"><option value="1024">1024 px</option><option value="2048" selected>2048 px</option><option value="4096">4096 px</option></select><button id="downloadPng" class="primary">Download PNG</button><button id="downloadSvg">Download SVG</button><button id="copySvg">Copy SVG</button></div>
+      <p class="small" id="resolution-hint">Sets PNG size and embedded picture detail in smooth SVG exports.</p>
+      <details><summary>How does it work?</summary><p>Each QR module's center keeps its required QR bit. Halftone fills the surroundings with dithered cells; smooth modes keep a detailed grayscale or color picture underneath crisp QR centers and protected reference marks. The quiet border stays clear. Smooth SVGs embed the picture and keep the QR marks as vector shapes. Scan the exported file with a phone before printing.</p></details>
     </section>
   </main>
   <footer class="shell footer">An independent implementation inspired by <a href="https://lucerojc.github.io/halftone-qr/">Jorge C. Lucero’s Halftone QR</a>. The underlying approach also appears in <a href="https://erikdemaine.org/prints/QR/">Erik and Martin Demaine’s QR prints</a>. Your pictures stay in this browser. <a href="https://github.com/pRizz/halftone-qr-studio">Source code</a>.</footer>`;
@@ -99,12 +102,21 @@ async function checkScan(generation: number, expected: string): Promise<void> {
 
 function render(): void {
   const s = settings();
+  const pictureMode = el<HTMLSelectElement>('pictureMode').value as PictureMode;
+  const smooth = pictureMode !== 'halftone';
+  el<HTMLSelectElement>('dither').disabled = smooth;
+  preview.classList.toggle('smooth-picture', smooth);
+  el<HTMLElement>('picture-mode-hint').textContent = smooth
+    ? 'Keeps image detail between crisp QR centers. Scan-check your export; more detail can affect readability.'
+    : 'Dithered cells surround each protected QR center.';
   el<HTMLElement>('count').textContent = `${new TextEncoder().encode(s.text).length} bytes`;
   for (const id of ['contrast', 'brightness', 'zoom']) el<HTMLOutputElement>(`${id}-out`).value = Number(el<HTMLInputElement>(id).value).toFixed(2) + (id === 'zoom' ? '×' : '');
   const error = el<HTMLParagraphElement>('error'); error.hidden = true;
   try {
     const qr = makeQr(s.text, s.errorLevel, s.minVersion);
-    result = compose(s, sampleImage(currentImage, qr.size * s.grid, s));
+    const resolution = Number(el<HTMLSelectElement>('exportSize').value);
+    const picture = samplePicture(currentImage, resolution, s, pictureMode);
+    result = compose(s, sampleImage(currentImage, qr.size * s.grid, s), picture);
     paint(preview, result, 1024);
     el<HTMLElement>('version-stat').textContent = `${result.version} · ${s.errorLevel}`;
     el<HTMLElement>('module-stat').textContent = `${result.modules} × ${result.modules}`;
@@ -156,7 +168,7 @@ el<HTMLElement>('drop').addEventListener('dragleave', () => el<HTMLElement>('dro
 el<HTMLElement>('drop').addEventListener('drop', event => { event.preventDefault(); el<HTMLElement>('drop').classList.remove('dragging'); loadFile(event.dataTransfer?.files[0]); });
 document.addEventListener('paste', event => { const item = Array.from(event.clipboardData?.items ?? []).find(entry => entry.type.startsWith('image/')); if (item) loadFile(item.getAsFile() ?? undefined); });
 el<HTMLSelectElement>('minVersion').addEventListener('change', () => { versionTouched = true; el<HTMLElement>('photo-hint').hidden = true; });
-for (const id of ['text', 'contrast', 'brightness', 'zoom', 'invert', 'dither', 'grid', 'errorLevel', 'minVersion', 'protect', 'fitMask', 'dark', 'light']) el<HTMLElement>(id).addEventListener('input', queueRender);
+for (const id of ['text', 'contrast', 'brightness', 'zoom', 'invert', 'pictureMode', 'exportSize', 'dither', 'grid', 'errorLevel', 'minVersion', 'protect', 'fitMask', 'dark', 'light']) el<HTMLElement>(id).addEventListener('input', queueRender);
 el<HTMLButtonElement>('downloadSvg').addEventListener('click', () => { if (result) download(`halftone-qr-v${result.version}.svg`, new Blob([toSvg(result)], { type: 'image/svg+xml' })); });
 el<HTMLButtonElement>('downloadPng').addEventListener('click', () => { if (!result) return; const canvas = document.createElement('canvas'); paint(canvas, result, Number(el<HTMLSelectElement>('exportSize').value)); canvas.toBlob(blob => { if (blob) download(`halftone-qr-v${result!.version}.png`, blob); }, 'image/png'); });
 el<HTMLButtonElement>('copySvg').addEventListener('click', async () => { if (!result) return; const button = el<HTMLButtonElement>('copySvg'); try { await navigator.clipboard.writeText(toSvg(result)); button.textContent = 'Copied!'; } catch { button.textContent = 'Copy failed'; } window.setTimeout(() => button.textContent = 'Copy SVG', 1600); });
