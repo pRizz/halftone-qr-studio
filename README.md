@@ -17,9 +17,9 @@
 
 Put a picture into a QR code. The generator runs locally in your browser and exports PNG and SVG.
 
-[![Halftone QR Studio in charcoal dark mode, showing the Cat template as a smooth color QR code](docs/images/halftone-qr-studio-cat.png)](https://prizz.github.io/halftone-qr-studio/)
+[![Halftone QR Studio showing the Cat template with smooth color, circular dots, and subtle edge softness](docs/images/halftone-qr-studio-cat.png)](https://prizz.github.io/halftone-qr-studio/)
 
-The [live website](https://prizz.github.io/halftone-qr-studio/) with the Cat template in smooth color mode. Cat photo by [Pavel Kovalev](https://commons.wikimedia.org/wiki/File:Portrait_of_a_cat1.jpg), [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
+The [live website](https://prizz.github.io/halftone-qr-studio/) with the Cat template in smooth color mode, circular QR dots, and 20% edge softness. Cat photo by [Pavel Kovalev](https://commons.wikimedia.org/wiki/File:Portrait_of_a_cat1.jpg), [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
 
 This is an **independent implementation** inspired by [Jorge C. Lucero's Halftone QR](https://lucerojc.github.io/halftone-qr/). Its source code was not copied. The technique is also discussed in [Erik and Martin Demaine's QR prints](https://erikdemaine.org/prints/QR/) and Chu, Chang, Lee, and Mitra, *Halftone QR Codes* (ACM Transactions on Graphics, 2013).
 
