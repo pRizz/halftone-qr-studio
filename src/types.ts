@@ -8,6 +8,7 @@ export interface QrMark {
   size: number;
   shape: CenterShape;
   bit: 0 | 1;
+  softness: number;
 }
 export type PictureMode = 'halftone' | 'grayscale' | 'color';
 export type Picture = { mode: 'halftone' } | {
@@ -26,6 +27,7 @@ export interface Settings {
   grid: number;
   center: number;
   centerShape: CenterShape;
+  edgeSoftness: number;
   errorLevel: ErrorLevel;
   minVersion: number;
   protect: MarkProtection;
@@ -35,7 +37,7 @@ export interface Settings {
 }
 
 export interface Result {
-  // Subcell samples of the composite and protection mask; marks retain exact geometry.
+  // Binary QR footprint samples; marks retain exact geometry and edge feathering.
   bits: Uint8Array;
   protected: Uint8Array;
   background: Uint8Array;

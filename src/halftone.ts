@@ -42,6 +42,7 @@ export function compose(settings: Settings, grays: Float32Array, pictureLayer: P
       size: solid ? grid : settings.center,
       shape: solid ? 'square' : settings.centerShape,
       bit: qrBit,
+      softness: solid ? 0 : settings.edgeSoftness,
     };
     marks.push(mark);
     for (let dy = 0; dy < grid; dy++) for (let dx = 0; dx < grid; dx++) {

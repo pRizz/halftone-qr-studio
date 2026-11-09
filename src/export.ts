@@ -1,6 +1,7 @@
 import type { Picture, Result } from './types';
 import { rgb } from './picture';
-import { markSvg } from './marks';
+import { markDefinitions, markGradientId, markSvg } from './marks';
+import { paintMarks } from './mark-paint';
 
 function pictureCanvas(picture: Exclude<Picture, { mode: 'halftone' }>): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
@@ -39,18 +40,7 @@ export function paint(canvas: HTMLCanvasElement, result: Result, pixels: number)
     const inset = 4 * result.grid * pixels / result.size;
     context.drawImage(pictureCanvas(result.picture), inset, inset, pixels - 2 * inset, pixels - 2 * inset);
   }
-  const scale = pixels / result.size;
-  for (const mark of result.marks) {
-    context.fillStyle = mark.bit ? result.dark : result.light;
-    if (mark.shape === 'circle') {
-      context.beginPath();
-      context.arc((mark.x + mark.size / 2) * scale, (mark.y + mark.size / 2) * scale, mark.size / 2 * scale, 0, Math.PI * 2);
-      context.fill();
-      continue;
-    }
-    const x = Math.round(mark.x * scale), y = Math.round(mark.y * scale);
-    context.fillRect(x, y, Math.round((mark.x + mark.size) * scale) - x, Math.round((mark.y + mark.size) * scale) - y);
-  }
+  paintMarks(context, result.marks, pixels / result.size, result.dark, result.light);
 }
 
 function backgroundPaths(result: Result): string {
@@ -74,7 +64,15 @@ export function toSvg(result: Result): string {
     ? `<path shape-rendering="crispEdges" fill="${result.dark}" d="${backgroundPaths(result)}"/>`
     : `<image x="${inset}" y="${inset}" width="${result.modules * result.grid}" height="${result.modules * result.grid}" href="${pictureCanvas(result.picture).toDataURL('image/png')}"/>`;
   const marks = result.marks.map(mark => markSvg(mark, mark.bit ? result.dark : result.light)).join('');
-  return `<svg xmlns="http://www.w3.org/2000/svg"${dimensions} viewBox="0 0 ${result.size} ${result.size}"><rect width="${result.size}" height="${result.size}" fill="${result.light}"/>${picture}${marks}</svg>`;
+  const definitions = new Map<string, string>();
+  for (const mark of result.marks) {
+    if (!(mark.softness > 0)) continue;
+    const color = mark.bit ? result.dark : result.light;
+    const id = markGradientId(mark, color);
+    if (!definitions.has(id)) definitions.set(id, markDefinitions(mark, color));
+  }
+  const defs = definitions.size ? `<defs>${Array.from(definitions.values()).join('')}</defs>` : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg"${dimensions} viewBox="0 0 ${result.size} ${result.size}">${defs}<rect width="${result.size}" height="${result.size}" fill="${result.light}"/>${picture}${marks}</svg>`;
 }
 
 export function download(name: string, blob: Blob): void {

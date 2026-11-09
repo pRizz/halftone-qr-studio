@@ -7,7 +7,7 @@ import type { MarkProtection, Settings } from '../src/types';
 
 const settings: Settings = {
   text: 'https://example.com/', contrast: 1, brightness: 0, zoom: 1,
-  invert: false, dither: 'threshold', grid: 6, center: 2, centerShape: 'circle',
+  invert: false, dither: 'threshold', grid: 6, center: 2, centerShape: 'circle', edgeSoftness: 0,
   errorLevel: 'H', minVersion: 1, protect: 'all', fitMask: false,
   dark: '#000000', light: '#ffffff',
 };

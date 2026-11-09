@@ -29,6 +29,8 @@ app.innerHTML = `
       <div class="section-title spaced"><span>03</span><div><h2>QR code</h2><p>Balance the picture with scan reliability.</p></div></div>
       <label for="centerShape">QR center shape</label><select id="centerShape" aria-describedby="center-shape-hint"><option value="circle" selected>Circular dots</option><option value="square">Square centers</option></select>
       <p class="small" id="center-shape-hint">Applies to dark and light centers. Protected reference marks stay solid squares.</p>
+      <div class="sliders"><label for="edgeSoftness">Dot edge softness <output id="edgeSoftness-out" for="edgeSoftness"></output></label><input id="edgeSoftness" type="range" min="0" max="50" step="5" value="20" aria-describedby="edge-softness-hint"/></div>
+      <p class="small" id="edge-softness-hint">Feathers the outer rim inward. Dot cores and protected reference marks stay solid. Set to 0 for sharp edges.</p>
       <div class="two-col"><div><label for="errorLevel">Error correction</label><select id="errorLevel"><option value="H">High · 30%</option><option value="Q">Quartile · 25%</option><option value="M">Medium · 15%</option><option value="L">Low · 7%</option></select></div><div><label for="minVersion">Minimum version</label><select id="minVersion"><option value="1">Automatic</option></select></div></div>
       <div class="small" id="photo-hint" hidden></div>
       <label for="protect">Reference marks</label><select id="protect"><option value="all">All solid · most reliable</option><option value="finders">Corner squares only</option><option value="none">None · most picture</option></select>
@@ -42,7 +44,7 @@ app.innerHTML = `
       <div class="stats"><div><b id="version-stat">–</b><span>Version</span></div><div><b id="module-stat">–</b><span>Modules</span></div><div><b id="picture-stat">–</b><span>Picture area</span></div><div><b id="mask-stat">–</b><span>Mask</span></div></div>
       <div class="export"><label for="exportSize">Image resolution</label><select id="exportSize" aria-describedby="resolution-hint"><option value="1024">1024 px</option><option value="2048" selected>2048 px</option><option value="4096">4096 px</option></select><button id="downloadPng" class="primary">Download PNG</button><button id="downloadSvg">Download SVG</button><button id="copySvg">Copy SVG</button></div>
       <p class="small" id="resolution-hint">Sets PNG size and embedded picture detail in smooth SVG exports.</p>
-      <details><summary>How does it work?</summary><p>Each QR module's center keeps its required QR bit as a circular dot or square. Halftone fills the surroundings with dithered cells; smooth modes keep a detailed grayscale or color picture underneath crisp QR centers and protected reference marks. The quiet border stays clear. Smooth SVGs embed the picture and keep the QR marks as vector shapes. Scan the exported file with a phone before printing.</p></details>
+      <details><summary>How does it work?</summary><p>Each QR module's center keeps its required QR bit as a circular dot or square. Edge softness feathers the outer rim inward while keeping its core solid. Halftone fills the surroundings with dithered cells; smooth modes keep a detailed grayscale or color picture underneath solid QR cores and protected reference marks. The quiet border stays clear. Smooth SVGs embed the picture and keep the QR marks as vector shapes. Scan the exported file with a phone before printing.</p></details>
     </section>
   </main>
   <footer class="shell footer">An independent implementation inspired by <a href="https://lucerojc.github.io/halftone-qr/">Jorge C. Lucero’s Halftone QR</a>. The underlying approach also appears in <a href="https://erikdemaine.org/prints/QR/">Erik and Martin Demaine’s QR prints</a>. Your pictures stay in this browser. <a href="https://github.com/pRizz/halftone-qr-studio">Source code</a>.</footer>`;
@@ -74,6 +76,7 @@ function settings(): Settings {
     dither: el<HTMLSelectElement>('dither').value as DitherMode,
     grid, center,
     centerShape: el<HTMLSelectElement>('centerShape').value as CenterShape,
+    edgeSoftness: Number(el<HTMLInputElement>('edgeSoftness').value) / 100,
     errorLevel: el<HTMLSelectElement>('errorLevel').value as ErrorLevel,
     minVersion: Number(el<HTMLSelectElement>('minVersion').value),
     protect: el<HTMLSelectElement>('protect').value as MarkProtection,
@@ -111,7 +114,8 @@ function render(): void {
   const pictureMode = el<HTMLSelectElement>('pictureMode').value as PictureMode;
   const smooth = pictureMode !== 'halftone';
   el<HTMLSelectElement>('dither').disabled = smooth;
-  preview.classList.toggle('smooth-picture', smooth || s.centerShape === 'circle');
+  preview.classList.toggle('smooth-picture', smooth || s.centerShape === 'circle' || s.edgeSoftness > 0);
+  el<HTMLOutputElement>('edgeSoftness-out').value = s.edgeSoftness === 0 ? 'Sharp' : `${Math.round(s.edgeSoftness * 100)}%`;
   el<HTMLElement>('picture-mode-hint').textContent = smooth
     ? 'Keeps image detail between crisp QR centers. Scan-check your export; more detail can affect readability.'
     : 'Dithered cells surround each protected QR center.';
@@ -224,7 +228,7 @@ el<HTMLElement>('drop').addEventListener('dragleave', () => el<HTMLElement>('dro
 el<HTMLElement>('drop').addEventListener('drop', event => { event.preventDefault(); el<HTMLElement>('drop').classList.remove('dragging'); loadFile(event.dataTransfer?.files[0]); });
 document.addEventListener('paste', event => { const item = Array.from(event.clipboardData?.items ?? []).find(entry => entry.type.startsWith('image/')); if (item) loadFile(item.getAsFile() ?? undefined); });
 el<HTMLSelectElement>('minVersion').addEventListener('change', () => { versionTouched = true; el<HTMLElement>('photo-hint').hidden = true; });
-for (const id of ['text', 'contrast', 'brightness', 'zoom', 'invert', 'pictureMode', 'centerShape', 'exportSize', 'dither', 'grid', 'errorLevel', 'minVersion', 'protect', 'fitMask', 'dark', 'light']) el<HTMLElement>(id).addEventListener('input', queueRender);
+for (const id of ['text', 'contrast', 'brightness', 'zoom', 'invert', 'pictureMode', 'centerShape', 'edgeSoftness', 'exportSize', 'dither', 'grid', 'errorLevel', 'minVersion', 'protect', 'fitMask', 'dark', 'light']) el<HTMLElement>(id).addEventListener('input', queueRender);
 el<HTMLButtonElement>('downloadSvg').addEventListener('click', () => { if (result) download(`halftone-qr-v${result.version}.svg`, new Blob([toSvg(result)], { type: 'image/svg+xml' })); });
 el<HTMLButtonElement>('downloadPng').addEventListener('click', () => { if (!result) return; const canvas = document.createElement('canvas'); paint(canvas, result, Number(el<HTMLSelectElement>('exportSize').value)); canvas.toBlob(blob => { if (blob) download(`halftone-qr-v${result!.version}.png`, blob); }, 'image/png'); });
 el<HTMLButtonElement>('copySvg').addEventListener('click', async () => { if (!result) return; const button = el<HTMLButtonElement>('copySvg'); try { await navigator.clipboard.writeText(toSvg(result)); button.textContent = 'Copied!'; } catch { button.textContent = 'Copy failed'; } window.setTimeout(() => button.textContent = 'Copy SVG', 1600); });

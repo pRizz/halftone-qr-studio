@@ -6,7 +6,7 @@ import type { Settings } from '../src/types';
 
 const settings: Settings = {
   text: 'https://example.com/', contrast: 1, brightness: 0, zoom: 1,
-  invert: false, dither: 'threshold', grid: 6, center: 2, centerShape: 'square', errorLevel: 'H',
+  invert: false, dither: 'threshold', grid: 6, center: 2, centerShape: 'square', edgeSoftness: 0, errorLevel: 'H',
   minVersion: 1, protect: 'all', fitMask: true, dark: '#000000', light: '#ffffff',
 };
 
